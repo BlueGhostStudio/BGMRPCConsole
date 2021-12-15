@@ -18,10 +18,10 @@
     <item>
      <widget class="QLineEdit" name="leUrl">
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::ClickFocus</enum>
       </property>
       <property name="text">
-       <string>122.114.67.199</string>
+       <string>wss://127.0.0.1</string>
       </property>
       <property name="placeholderText">
        <string>Url</string>
@@ -31,7 +31,7 @@
     <item>
      <widget class="QLineEdit" name="lePort">
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::ClickFocus</enum>
       </property>
       <property name="text">
        <string>8000</string>
@@ -117,16 +117,6 @@
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>23</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">

@@ -49,7 +49,8 @@ void
 MainWindow::switchConnect() {
     if (!m_client.isConnected()) {
         QString urlStr =
-            QString("ws://%1:%2").arg(leUrl->text()).arg(lePort->text());
+            QString("%1:%2").arg(leUrl->text()).arg(lePort->text());
+        qDebug() << urlStr;
         m_client.connectToHost(QUrl(urlStr));
     } else
         m_client.disconnectFromHost();
