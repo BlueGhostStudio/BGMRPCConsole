@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
                          tbConnect->setText(c ? "Disconnect" : "Connect");
                      });
     QObject::connect(
-        &m_client, &NS_BGMRPCClient::BGMRPCClient::onRemoteSignal, this,
+        &m_client, &NS_BGMRPCClient::BGMRPCClient::remoteSignal, this,
         [=](const QString& object, const QString& sig, const QJsonArray& args) {
             qDebug() << "<strong>onRemoteSignal</strong>" << object << sig
                      << args;
@@ -64,9 +64,9 @@ MainWindow::callMethod() {
                     pteRemoteMethodArgs->toPlainText().toUtf8())
                     .toVariant();*/
 
-    CallGraph::start("initial")
+    CallGraph::start("initial", this)
         ->nodes("initial",
-                [=](CallGraph* cg, const QVariant&) {
+                [=](QPointer<CallGraph> cg, const QVariant&) {
                     if (leRemoteObject->text().isEmpty() ||
                         leRemoteMethod->text().isEmpty()) {
                         qCritical() << "<strong>ERROR</strong>"
@@ -79,7 +79,7 @@ MainWindow::callMethod() {
                 })
         ->nodes(
             "call",
-            [=](CallGraph* cg, const QVariant&) {
+            [=](QPointer<CallGraph> cg, const QVariant&) {
                 qDebug() << "<strong>Call</strong>"
                          << leRemoteObject->text() + '.' +
                                 leRemoteMethod->text() + "()";
@@ -92,8 +92,10 @@ MainWindow::callMethod() {
                     ->then([=](const QVariant& ret) { cg->to("result", ret); });
             })
         ->nodes("result",
-                [=](CallGraph* cg, const QVariant& data) {
-                    qDebug() << "<strong>return</strong>" << data;
+                [=](QPointer<CallGraph> cg, const QVariant& data) {
+                    qDebug() << "<strong>return</strong>";
+                    qDebug().noquote()
+                        << QJsonDocument::fromVariant(data).toJson();
                     widExec->setEnabled(true);
                     cg->toFinal();
                 })
