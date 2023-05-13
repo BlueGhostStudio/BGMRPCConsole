@@ -66,7 +66,7 @@ MainWindow::callMethod() {
 
     CallGraph::start("initial", this)
         ->nodes("initial",
-                [=](QPointer<CallGraph> cg, const QVariant&) {
+                [=](CallGraph* cg, const QVariant&) {
                     if (leRemoteObject->text().isEmpty() ||
                         leRemoteMethod->text().isEmpty()) {
                         qCritical() << "<strong>ERROR</strong>"
@@ -79,7 +79,7 @@ MainWindow::callMethod() {
                 })
         ->nodes(
             "call",
-            [=](QPointer<CallGraph> cg, const QVariant&) {
+            [=](CallGraph* cg, const QVariant&) {
                 qDebug() << "<strong>Call</strong>"
                          << leRemoteObject->text() + '.' +
                                 leRemoteMethod->text() + "()";
@@ -92,7 +92,7 @@ MainWindow::callMethod() {
                     ->then([=](const QVariant& ret) { cg->to("result", ret); });
             })
         ->nodes("result",
-                [=](QPointer<CallGraph> cg, const QVariant& data) {
+                [=](CallGraph* cg, const QVariant& data) {
                     qDebug() << "<strong>return</strong>";
                     qDebug().noquote()
                         << QJsonDocument::fromVariant(data).toJson();
