@@ -1,0 +1,26 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="bgstudio.BGMRPCClientDaemon">
+    <signal name="isConnectedChanged">
+      <arg name="scenario" type="s" direction="out"/>
+    </signal>
+    <method name="connectToHost">
+      <arg type="s" direction="out"/>
+      <arg name="scenario" type="s" direction="in"/>
+      <arg name="url" type="s" direction="in"/>
+    </method>
+    <method name="setScenarioOpt">
+      <arg name="opt" type="a{sv}" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+    <method name="call">
+      <arg name="scenario" type="s" direction="in"/>
+      <arg name="obj" type="s" direction="in"/>
+      <arg name="args" type="av" direction="in"/>
+    </method>
+    <method name="isConnected">
+      <arg type="b" direction="out"/>
+      <arg name="scenario" type="s" direction="in"/>
+    </method>
+  </interface>
+</node>
