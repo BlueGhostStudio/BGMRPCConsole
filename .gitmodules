@@ -1,0 +1,3 @@
+[submodule "BGMRPCClient"]
+	path = BGMRPCClient
+	url = https://github.com/BlueGhostStudio/BGMRPCClient.git
