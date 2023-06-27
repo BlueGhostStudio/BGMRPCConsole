@@ -38,6 +38,13 @@ set_target_properties(
     ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}:${BGMRPC_CLIENT}/${CMAKE_INSTALL_LIBDIR}
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/BGStudio.BGMRPCConsoleDaemon.service.in
+  ${CMAKE_CURRENT_BINARY_DIR}/BGStudio.BGMRPCConsoleDaemon.service @ONLY)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/BGStudio.BGMRPCConsoleDaemon.service
+        DESTINATION /usr/share/dbus-1/services)
+
 install(
   TARGETS BGMRPCConsoleDaemon
   LIBRARY DESTINATION ${BGMRPC_CLIENT}/whisp/${CMAKE_INSTALL_LIBDIR}

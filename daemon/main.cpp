@@ -8,6 +8,10 @@ int
 main(int argc, char* argv[]) {
     QCoreApplication a(argc, argv);
 
+    QCoreApplication::setOrganizationName("BGStudio");
+    QCoreApplication::setOrganizationDomain("bgstudio.org");
+    QCoreApplication::setApplicationName("whisp");
+
     BGMRPCConsoleDaemon* daemon = new BGMRPCConsoleDaemon();
 
     new BGMRPCConsoleDaemonAdaptor(daemon);

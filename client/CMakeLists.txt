@@ -27,22 +27,45 @@ add_executable(whisp main.cpp ${client_SRCS})
 target_link_libraries(whisp Qt${QT_VERSION_MAJOR}::Core
                       Qt${QT_VERSION_MAJOR}::DBus)
 
+# add_custom_target( watchScripts ALL COMMAND ${CMAKE_COMMAND} -E copy_directory
+# ${CMAKE_CURRENT_LIST_DIR}/watch ${CMAKE_CURRENT_BINARY_DIR}/watch SOURCES
+# watch/watch_keepalive.sh watch/watch_state.sh)
+
 add_custom_target(
-  watchScripts ALL
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/watch
-          ${CMAKE_CURRENT_BINARY_DIR}/watch
-  SOURCES watch/watch_keepalive.sh watch/watch_state.sh)
+  api ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/api
+          ${CMAKE_CURRENT_BINARY_DIR}/api
+  SOURCES api/default/initial.sh
+          api/default/table.jq
+          api/default/watch_state.sh
+          api/default/watch_keepalive.sh
+          api/account/initial.sh
+          api/account/watch_state.sh
+          api/account/login.sh
+          api/cms/initial.sh
+          api/cms/prepare_path.sh
+          api/cms/cd.sh
+          api/cms/list.sh
+          api/cms/edit.sh
+          api/cms/watch_signal.sh
+          api/cms/watch_state.sh
+          api/todo/initial.sh
+          api/todo/open.sh)
 
 install(
   TARGETS whisp
   LIBRARY DESTINATION ${BGMRPC_CLIENT}/whisp/${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${BGMRPC_CLIENT}/whisp/${CMAKE_INSTALL_BINDIR})
 
+# install( DIRECTORY watch DESTINATION ${WHISPDATALOCATION} PATTERN "watch/*"
+# PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+# WORLD_EXECUTE WORLD_READ)
+
 install(
-  DIRECTORY watch
+  DIRECTORY api
   DESTINATION ${WHISPDATALOCATION}
   PATTERN
-    "watch/*"
+    "*"
     PERMISSIONS
       OWNER_EXECUTE
       OWNER_WRITE
