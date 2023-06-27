@@ -1,0 +1,6 @@
+-I/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client
+-I/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client
+-DWHISPDATALOCATION="/usr/local/BGMRPC//whisp/share"
+-o
+/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client/moc_client_interface.cpp
+/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client/client_interface.h

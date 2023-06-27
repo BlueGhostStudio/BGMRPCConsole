@@ -1,0 +1,6 @@
+-I/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/daemon/../BGMRPCClient
+-I/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/daemon
+-I/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/daemon
+-o
+/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/daemon/moc_daemon_adaptor.cpp
+/home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/daemon/daemon_adaptor.h

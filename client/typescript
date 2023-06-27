@@ -1,0 +1,19 @@
+脚本启动于 2023-07-09 14:07:23+08:00 [TERM="tmux-256color" TTY="/dev/pts/6" COLUMNS="143" LINES="26"]
+[1m[7m%[27m[1m[0m                                                                                                                                               k..onsole/client\]7;file:///home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client\[0m[27m[24m[J
+[1m[34m#[00m [36mblueghost [00m@ [32mBGStudio [00min [1m[33m~/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client[00m [00mon[34m git:[36mmain [31mx[00m [14:07:23] 
+[1m[31m$ [00m[K[?1h=[?2004hlls[?1l>[?2004l
+kls\[0m[01;34mapi[0m  CMakeLists.txt  CMakeLists.txt.user  main.cpp  typescript  [01;34mvim[0m
+[1m[7m%[27m[1m[0m                                                                                                                                               k..onsole/client\]7;file:///home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client\[0m[27m[24m[J
+[1m[34m#[00m [36mblueghost [00m@ [32mBGStudio [00min [1m[33m~/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client[00m [00mon[34m git:[36mmain [31mx[00m [14:08:22] 
+[1m[31m$ [00m[K[?1h=[?2004h11;2c2RR84;0;0caa   
+[J[0m0[JM[0m[27m[24m[2C1;2c2RR84;0;0[K
+[J[J[0m0[JM[0m[27m[24m[2C1;2c2RR84;0;0[K[?1l>[?2004l
+[Jk1;2c2RR84;0;0\cd: no such entry in dir stack
+zsh: command not found: 2c2RR84
+zsh: command not found: 0
+zsh: command not found: 0
+[1m[7m%[27m[1m[0m                                                                                                                                               k..onsole/client\]7;file:///home/blueghost/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client\[0m[27m[24m[J
+[1m[34m#[00m [36mblueghost [00m@ [32mBGStudio [00min [1m[33m~/Develop/BGStudio/BGMRPCModule/BGMRPCConsole/client[00m [00mon[34m git:[36mmain [31mx[00m [14:13:53] C:[31m127[00m
+[1m[31m$ [00m[K[?1h=[?2004h[?2004l
+
+脚本完成于 2023-07-09 14:13:55+08:00 [COMMAND_EXIT_CODE="127"]

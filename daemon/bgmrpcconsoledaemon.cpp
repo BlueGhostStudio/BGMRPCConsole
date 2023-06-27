@@ -1,6 +1,7 @@
 #include "bgmrpcconsoledaemon.h"
 
 #include <QJsonDocument>
+#include <QSettings>
 
 BGMRPCConsoleDaemon::BGMRPCConsoleDaemon(QObject* parent) : QObject{ parent } {}
 
@@ -10,22 +11,24 @@ BGMRPCConsoleDaemon::existWorkspace(const QString& workspace) {
 }
 
 QString
-BGMRPCConsoleDaemon::begin(const QString& workspace, const QString& url) {
-    t_workspace theWorkspace;
+BGMRPCConsoleDaemon::begin(const QString& workspace, const QString& url,
+                           const QString& group, const QString& app,
+                           const QString& api) {
+    t_workspace* theWorkspace;
 
     if (!m_workspace.contains(workspace)) {
-        theWorkspace.client = new NS_BGMRPCClient::BGMRPCClient(this);
-        m_currentWorkspace = workspace;
-        QObject::connect(theWorkspace.client,
+        t_workspace newWorkspace;
+        newWorkspace.client = new NS_BGMRPCClient::BGMRPCClient(this);
+        m_workspace[workspace] = newWorkspace;
+
+        theWorkspace = &m_workspace[workspace];
+
+        QObject::connect(theWorkspace->client,
                          &NS_BGMRPCClient::BGMRPCClient::stateChanged, this,
                          [=](QAbstractSocket::SocketState state) {
-                             if (state == QAbstractSocket::ConnectedState &&
-                                 !m_workspace.contains(workspace))
-                                 m_workspace[workspace] = theWorkspace;
-
                              emit stateChanged(workspace, state);
                          });
-        QObject::connect(theWorkspace.client,
+        QObject::connect(theWorkspace->client,
                          &NS_BGMRPCClient::BGMRPCClient::remoteSignal, this,
                          [=](const QString& obj, const QString& sig,
                              const QJsonArray& args) {
@@ -33,14 +36,22 @@ BGMRPCConsoleDaemon::begin(const QString& workspace, const QString& url) {
                                                QJsonDocument(args).toJson(
                                                    QJsonDocument::Compact));
                          });
-        QObject::connect(theWorkspace.client,
+        QObject::connect(theWorkspace->client,
                          &NS_BGMRPCClient::BGMRPCClient::pong, this,
                          [=]() { emit pong(workspace); });
-    } else
-        theWorkspace = m_workspace[workspace];
 
-    if (!theWorkspace.client->isConnected())
-        theWorkspace.client->connectToHost(QUrl(url));
+        emit workspaceChanged(workspace);
+    } else
+        theWorkspace = &m_workspace[workspace];
+
+    m_currentWorkspace = workspace;
+
+    if (!group.isEmpty()) theWorkspace->group = group;
+    if (!app.isEmpty()) theWorkspace->app = app;
+    if (!api.isEmpty()) theWorkspace->api = api;
+
+    if (!theWorkspace->client->isConnected())
+        theWorkspace->client->connectToHost(QUrl(url));
     else
         emit stateChanged(workspace, QAbstractSocket::ConnectedState);
 
@@ -52,12 +63,11 @@ BGMRPCConsoleDaemon::end(const QString& workspace) {
     if (m_workspace.contains(workspace)) {
         NS_BGMRPCClient::BGMRPCClient* client = m_workspace[workspace].client;
         QObject::connect(client, &NS_BGMRPCClient::BGMRPCClient::disconnected,
-                         this, [=]() {
-                             QObject::disconnect(client, 0, 0, 0);
-                             m_workspace.remove(workspace);
-                             client->deleteLater();
-                         });
-        client->disconnectFromHost();
+                         this, [=]() { removeWorkspace(workspace); });
+        if (client->isConnected())
+            client->disconnectFromHost();
+        else
+            removeWorkspace(workspace);
         return true;
     } else
         return false;
@@ -93,10 +103,13 @@ BGMRPCConsoleDaemon::workspaces() {
 
 QString
 BGMRPCConsoleDaemon::use(const QString& workspace) {
-    if (workspace.isEmpty())
+    if (workspace.isEmpty()) {
         return m_currentWorkspace;
-    else if (m_workspace.contains(workspace)) {
-        m_currentWorkspace = workspace;
+    } else if (m_workspace.contains(workspace)) {
+        if (m_currentWorkspace != workspace) {
+            m_currentWorkspace = workspace;
+            emit workspaceChanged(m_currentWorkspace);
+        }
 
         return workspace;
     } else
@@ -110,6 +123,7 @@ BGMRPCConsoleDaemon::setWorkspaceOpt(const QString& workspace,
         t_workspace& theWorkspace = m_workspace[workspace];
         if (opt.contains("group")) theWorkspace.group = opt["group"].toString();
         if (opt.contains("app")) theWorkspace.app = opt["app"].toString();
+        if (opt.contains("api")) theWorkspace.api = opt["api"].toString();
 
         return true;
     } else
@@ -120,8 +134,9 @@ QVariantMap
 BGMRPCConsoleDaemon::workspaceOpt(const QString& workspace) {
     if (m_workspace.contains(workspace)) {
         const t_workspace theWorkspace = m_workspace[workspace];
-        return QVariantMap(
-            { { "group", theWorkspace.group }, { "app", theWorkspace.app } });
+        return QVariantMap({ { "group", theWorkspace.group },
+                             { "app", theWorkspace.app },
+                             { "api", theWorkspace.api } });
     }
 
     return QVariantMap();
@@ -129,13 +144,17 @@ BGMRPCConsoleDaemon::workspaceOpt(const QString& workspace) {
 
 bool
 BGMRPCConsoleDaemon::call(const QString& workspace, const QString& obj,
-                          const QString& method, const QVariantList& args,
-                          bool withPrefix) {
+                          const QString& method, const QByteArray& args,
+                          bool withPrefix, const QString& group,
+                          const QString& app) {
     if (m_workspace.contains(workspace)) {
         t_workspace theWorkspace = m_workspace[workspace];
+        if (!group.isEmpty()) theWorkspace.group = group;
+        if (!app.isEmpty()) theWorkspace.app = app;
+
         theWorkspace.client
             ->callMethod(RPCObjName(theWorkspace, obj, withPrefix), method,
-                         args)
+                         QJsonDocument::fromJson(args).toVariant().toList())
             ->then(
                 [=](const QVariant& ret) {
                     emit returnData(QJsonDocument::fromVariant(ret).toJson());
@@ -159,11 +178,79 @@ BGMRPCConsoleDaemon::isConnected(const QString& workspace) const {
 
 QString
 BGMRPCConsoleDaemon::RPCObjName(const QString& workspace, const QString& obj,
-                                bool withPrefix) {
-    if (m_workspace.contains(workspace))
-        return RPCObjName(m_workspace[workspace], obj, withPrefix);
-    else
+                                bool withPrefix, const QString& group,
+                                const QString& app) {
+    if (m_workspace.contains(workspace)) {
+        t_workspace theWorkspace = m_workspace[workspace];
+        if (!group.isEmpty()) theWorkspace.group = group;
+        if (!app.isEmpty()) theWorkspace.app = app;
+
+        return RPCObjName(theWorkspace, obj, withPrefix);
+    } else
         return QString();
+}
+
+bool
+BGMRPCConsoleDaemon::setEnv(const QString& workspace, const QString& name,
+                            const QByteArray& data) {
+    /*if (workspace.isEmpty()) {
+
+    } else if (m_workspace.contains(workspace)) {
+        if (data.isEmpty())
+            m_workspace[workspace].env.remove(name);
+        else
+            m_workspace[workspace].env[name] = data;
+        return true;
+    } else
+        return false;*/
+    if (workspace.isEmpty()) {
+        QSettings globalEnv;
+        if (data.isEmpty())
+            globalEnv.remove(name);
+        else
+            globalEnv.setValue(name, data);
+
+        return true;
+    } else if (m_workspace.contains(workspace)) {
+        if (data.isEmpty())
+            m_workspace[workspace].env.remove(name);
+        else
+            m_workspace[workspace].env[name] = data;
+
+        return true;
+    } else
+        return false;
+}
+
+QByteArray
+BGMRPCConsoleDaemon::env(const QString& workspace, const QString& name) {
+    if (workspace.isEmpty()) {
+        QSettings globalEnv;
+        return globalEnv.value(name, "").toByteArray();
+    } else if (m_workspace.contains(workspace) &&
+               m_workspace[workspace].env.contains(name)) {
+        return m_workspace[workspace].env[name];
+    } else
+        return "";
+}
+
+QVariantMap
+BGMRPCConsoleDaemon::listEnv(const QString& workspace) {
+    QVariantMap result;
+
+    if (workspace.isEmpty()) {
+        QSettings settings;
+        foreach (const QString& key, settings.allKeys()) {
+            result[key] = settings.value(key);
+        }
+    } else if (m_workspace.contains(workspace)) {
+        QMap<QString, QByteArray> theEnv = m_workspace[workspace].env;
+        foreach (const QString& key, theEnv.keys()) {
+            result[key] = theEnv[key];
+        }
+    }
+
+    return result;
 }
 
 QString
@@ -171,17 +258,27 @@ BGMRPCConsoleDaemon::RPCObjName(const t_workspace& workspace,
                                 const QString& obj, bool withPrefix) {
     if (!withPrefix) return obj;
 
-    QStringList sp = obj.split("::");
-    const QString& group = workspace.group;
-    const QString& app = workspace.app;
+    QString group = workspace.group;
+    QString app = workspace.app;
 
-    if (sp.length() == 2)
-        return (group.length() > 0 ? group + "::" : "") + obj;
-    else if (sp.length() == 1) {
-        if (group.length() > 0)
-            return group + "::" + app + "::" + obj;
-        else
-            return (app.length() > 0 ? app + "::" : "") + obj;
-    } else
-        return obj;
+    QString objName;
+
+    if (!group.isEmpty()) objName += group + "::";
+    if (!app.isEmpty())
+        objName += app + "::";
+    else if (!app.isEmpty())
+        objName += "::";
+
+    objName += obj;
+
+    return objName;
+}
+
+void
+BGMRPCConsoleDaemon::removeWorkspace(const QString& workspace) {
+    NS_BGMRPCClient::BGMRPCClient* client = m_workspace[workspace].client;
+    QObject::disconnect(client, 0, 0, 0);
+    client->deleteLater();
+    m_workspace.remove(workspace);
+    emit workspaceEnded(workspace);
 }
